@@ -1,8 +1,17 @@
 # s.search
 
+[![Deploy to GitHub Pages](https://github.com/taetrus/s.search/actions/workflows/deploy.yml/badge.svg)](https://github.com/taetrus/s.search/actions/workflows/deploy.yml)
+
 A search box that understands a small query language, with autocomplete. It searches a mock catalog of science-fiction books, TV series, movies, and comics.
 
-**Live demo:** https://taetrus.github.io/s.search/
+**Try it:** [taetrus.github.io/s.search](https://taetrus.github.io/s.search/). No sign-in or setup is necessary.
+
+Example queries to try:
+
+- `director:"ridley scott"`
+- `format:book year:1960..1969 rating:>=8.4`
+- `genre:cyberpunk format:movie`
+- `blade` (type it and look at the suggestions)
 
 ![The search box with the query "format:movie ali". The list shows the series tag "alien", the movies Alien and Aliens, and title and plot search shortcuts.](docs/screenshot.png)
 
@@ -15,6 +24,19 @@ A search box that understands a small query language, with autocomplete. It sear
 - **Keyboard control.** You can do all steps with the keyboard.
 
 The app has no backend. All data is in `src/data/works.ts`, and all search runs in the browser.
+
+## Tech stack
+
+| Part | Tool |
+|---|---|
+| UI | React 19 |
+| Language | TypeScript 7 |
+| Build and dev server | Vite 8 |
+| Tests | Vitest 5 |
+| Linter | oxlint |
+| Hosting | GitHub Pages, deployed by GitHub Actions |
+
+The app uses no UI library and no runtime dependencies other than React.
 
 ## Query syntax
 
@@ -54,7 +76,7 @@ Rules:
 
 ## Run locally
 
-You need Node.js 22 or later.
+You need Node.js 20.19 or later, or 22.12 or later. The deploy workflow uses Node.js 22.
 
 1. Clone the repository:
    ```bash
@@ -98,10 +120,53 @@ The tag suggestions and the search use the same data and the same matching code.
 
 `src/search/tagApi.ts` and `src/search/worksApi.ts` are local functions. To use a real server, replace the body of `searchTags` and `searchWorks` with `fetch` calls.
 
+### Key files
+
+| File | Contents |
+|---|---|
+| `src/data/works.ts` | The catalog. This is the only data source. |
+| `src/search/query.ts` | Tokenizer, query parser, and text replacement |
+| `src/search/SearchBox.tsx` | The search box and the suggestion list |
+| `src/search/useLookup.ts` | Delayed, cancellable lookups for the suggestions |
+| `src/search/tagApi.ts` | Tag suggestions and tag counts, built from the catalog |
+| `src/search/worksApi.ts` | The filter rules and the search |
+| `src/App.tsx` | The page and the result cards |
+
+## Change the data
+
+**Add a work:** add an entry to the `DRAFTS` list in `src/data/works.ts`. Write all tag names in lowercase. The new tags appear in the suggestions automatically.
+
+**Add a tag type** (for example `studio`):
+
+1. Add the name to `TAG_TYPES` in `src/search/tagApi.ts`.
+2. Add a field for it to the `Work` type in `src/data/works.ts`.
+3. Add a `case` for it to `tagValues` in `src/search/tagApi.ts`.
+4. Add a `.sb-badge-studio` color to `src/search/SearchBox.css`.
+
+The field shortcuts and the filter rules use the new type automatically.
+
 ## Deployment
 
-Each push to `main` starts the workflow in `.github/workflows/deploy.yml`. The workflow runs the tests, the linter, and the build. If all three pass, it publishes `dist/` to GitHub Pages. If one step fails, the live site does not change.
+The live site is at **https://taetrus.github.io/s.search/**.
+
+Each push to `main` starts the workflow in `.github/workflows/deploy.yml`. The workflow runs the tests, the linter, and the build. If all three pass, it publishes `dist/` to GitHub Pages. If one step fails, the live site does not change. The badge at the top of this file shows the result of the last run.
+
+### Deploy your own copy
+
+1. Fork this repository.
+2. In your fork, open **Settings → Pages**.
+3. Set **Source** to **GitHub Actions**.
+4. Open the **Actions** tab. GitHub disables workflows in a fork until you enable them. Click the button that enables them.
+5. Run the **Deploy to GitHub Pages** workflow, or push a commit to `main`.
+
+The site then appears at `https://<your-user>.github.io/<repository-name>/`. You do not need to change the code for a different repository name. The build uses relative asset paths (`base: './'` in `vite.config.ts`).
+
+On the GitHub Free plan, GitHub Pages works only for public repositories.
 
 ## Credits
 
 The catalog uses the titles, names, and dates of real works for demonstration only. The plot summaries are short original descriptions.
+
+## License
+
+This project uses the [MIT License](LICENSE). You may use, change, and share the code. Keep the copyright notice and the license text in all copies.
